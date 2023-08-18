@@ -95,4 +95,11 @@ public class DishController {
         List<Dish> dishes = dishService.getByCategoryId(categoryId);
         return Result.success(dishes);
     }
+
+    @PostMapping("/status/{status}")
+    @ApiOperation("更改菜品销售状态")
+    public Result StartOrStop(@PathVariable Integer status, Long id) {
+        dishService.startOrStop(status, id);
+        return Result.success();
+    }
 }
