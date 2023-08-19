@@ -12,3 +12,9 @@ sky:
     access-key-id: LTAI5tGdNNL3H2g8TU7ic2r7
     access-key-secret: KeOk2pD2GMhdQEbAGRJhyhnEYSuso1
     bucket-name: webdemo1
+
+  redis:
+    host: localhost
+    port: 6379
+    password: 123456
+    database: 1
