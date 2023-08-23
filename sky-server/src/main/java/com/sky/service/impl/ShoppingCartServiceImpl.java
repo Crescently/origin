@@ -36,6 +36,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
      * @param shoppingCartDTO 传入数据
      */
     @Override
+
     public void addShoppingCart(ShoppingCartDTO shoppingCartDTO) {
         //判断加入购物车中的商品是否已经存在
         ShoppingCart shoppingCart = new ShoppingCart();
