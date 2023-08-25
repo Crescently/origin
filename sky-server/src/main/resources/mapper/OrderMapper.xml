@@ -66,5 +66,17 @@
         </where>
         order by order_time desc
     </select>
+    <select id="pageQuery" resultType="com.sky.entity.Orders">
+        select * from sky_take_out.orders
+        <where>
+            <if test="number != null">
+                and number like concat('%',#{number},'%')
+            </if>
+            <if test="phone != null">
+                and phone like concat('%',#{phone},'%')
+            </if>
+        </where>
+        order by order_time desc
+    </select>
 
 </mapper>
