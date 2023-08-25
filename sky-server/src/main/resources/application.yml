@@ -61,3 +61,8 @@ sky:
     weChatPayCertFilePath: ${sky.wechat.weChatPayCertFilePath}
     notifyUrl: ${sky.wechat.notifyUrl}
     refundNotifyUrl: ${sky.wechat.refundNotifyUrl}
+
+  shop:
+    address: 山东省青岛市胶州市北关东庸村
+  baidu:
+    ak: p8C2TgPOYBR5wuj3F4u1Z3C8LrGyrGsN
