@@ -52,4 +52,7 @@ public interface OrderMapper {
     @Select("select * from sky_take_out.orders where status = #{status} and order_time < #{orderTime}")
     List<Orders> getByStatusAndOrderTimeLT(Integer status, LocalDateTime orderTime);
 
+    @Select("select sum(amount) from sky_take_out.orders where order_time > #{beginTime} and order_time < #{endTime} and status = 5")
+    Double getAmountByDate(LocalDateTime beginTime, LocalDateTime endTime);
+
 }
