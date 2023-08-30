@@ -2,19 +2,24 @@ package com.sky.service.impl;
 
 import com.sky.dto.GoodsSalesDTO;
 import com.sky.entity.Orders;
-import com.sky.mapper.OrderDetailMapper;
 import com.sky.mapper.OrderMapper;
 import com.sky.mapper.UserMapper;
 import com.sky.service.ReportService;
-import com.sky.vo.OrderReportVO;
-import com.sky.vo.SalesTop10ReportVO;
-import com.sky.vo.TurnoverReportVO;
-import com.sky.vo.UserReportVO;
+import com.sky.service.WorkspaceService;
+import com.sky.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -35,7 +40,8 @@ public class ReportServiceImpl implements ReportService {
     private UserMapper userMapper;
 
     @Autowired
-    private OrderDetailMapper orderDetailMapper;
+    private WorkspaceService workspaceService;
+
 
     @Override
     public TurnoverReportVO getTurnoverStatistics(LocalDate begin, LocalDate end) {
@@ -174,6 +180,65 @@ public class ReportServiceImpl implements ReportService {
                 .nameList(StringUtils.join(names, ","))
                 .numberList(StringUtils.join(numberList, ","))
                 .build();
+    }
+
+    @Override
+    public void exportBusinessData(HttpServletResponse response) {
+
+        LocalDate dateBegin = LocalDate.now().minusDays(30);
+        LocalDate dataEnd = LocalDate.now().minusDays(1);
+
+        LocalDateTime begin = LocalDateTime.of(dateBegin, LocalTime.MIN);
+        LocalDateTime end = LocalDateTime.of(dataEnd, LocalTime.MAX);
+
+        BusinessDataVO businessData = workspaceService.getBusinessData(begin, end);
+
+        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("/template/运营数据报表模板.xlsx");
+
+        try {
+            XSSFWorkbook excel = new XSSFWorkbook(inputStream);
+
+            //填充数据
+            XSSFSheet sheet1 = excel.getSheet("Sheet1");
+            XSSFCell cell = sheet1.getRow(1).getCell(1);
+            cell.setCellValue("时间：" + dateBegin + "至" + dataEnd);
+
+            XSSFRow sheet1Row = sheet1.getRow(3);
+            sheet1Row.getCell(2).setCellValue(businessData.getTurnover());
+            sheet1Row.getCell(4).setCellValue(businessData.getOrderCompletionRate());
+            sheet1Row.getCell(6).setCellValue(businessData.getNewUsers());
+
+            sheet1Row = sheet1.getRow(4);
+            sheet1Row.getCell(2).setCellValue(businessData.getValidOrderCount());
+            sheet1Row.getCell(4).setCellValue(businessData.getUnitPrice());
+
+
+            for (int i = 0; i < 30; i++) {
+                LocalDate date = dateBegin.plusDays(i);
+                BusinessDataVO businessDataVO = workspaceService.getBusinessData(LocalDateTime.of(date, LocalTime.MIN), LocalDateTime.of(date, LocalTime.MAX));
+
+                sheet1Row = sheet1.getRow(7 + i);
+                sheet1Row.getCell(1).setCellValue(date.toString());
+                sheet1Row.getCell(2).setCellValue(businessDataVO.getTurnover());
+                sheet1Row.getCell(3).setCellValue(businessDataVO.getValidOrderCount());
+                sheet1Row.getCell(4).setCellValue(businessDataVO.getOrderCompletionRate());
+                sheet1Row.getCell(5).setCellValue(businessDataVO.getUnitPrice());
+                sheet1Row.getCell(6).setCellValue(businessDataVO.getNewUsers());
+
+            }
+
+
+            ServletOutputStream outputStream = response.getOutputStream();
+            excel.write(outputStream);
+
+            outputStream.close();
+            excel.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
     private Integer getOrderCount(LocalDateTime begin, LocalDateTime end, Integer status) {
